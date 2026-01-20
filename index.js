@@ -4,6 +4,7 @@ const COHORT = "/2511-FTB-CT-WEB-PT-vanessa"; // Make sure to change this!
 const API = BASE + COHORT;
 
 // === State ===
+
 let parties = [];
 let selectedParty;
 let rsvps = [];
@@ -126,13 +127,23 @@ function createForm() {
     <button type="submit" class="addParty">Add Party</button>
   `;
 
-  // const $button = $form.querySelector("button");
+  // type="submit" means when it's clicked, it'll fire a submit event on the nearest form.
+  // event listener for pulling data from a form has to be done on the form,
+  // not on the button within the form
 
   $form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const data = new FormData($form);
+    // new creates the empty object
+    // FormData is the data we're pulling from $form as key-value pairs
+
     const date = new Date(data.get("pDate")).toISOString();
+    // FormData is returned in strings
+    // data.get("pDate") pulls the date from data
+    // Date() converts the string into date type
+    // .toISOString() converts it to UTC which is what most APIs expect (for consistency)
+
     await addParty({
       name: data.get("pName"),
       description: data.get("pDescription"),
@@ -141,6 +152,7 @@ function createForm() {
     });
     $form.reset();
   });
+  // the addParty function does the heavy work of sending the request to post the data to the API
 
   return $form;
 }
@@ -164,6 +176,7 @@ function SelectedParty() {
     <GuestList></GuestList>
     <button class="deleteParty">Delete Party</button>
   `;
+  // Added the delete button to innerHTML above, event listener below
 
   $party.querySelector("GuestList").replaceWith(GuestList());
   const $deleteButton = $party.querySelector(".deleteParty");
@@ -173,14 +186,25 @@ function SelectedParty() {
   return $party;
 }
 
+// This was the extra part at the end of Block20's workshop
+
 /** List of guests attending the selected party */
 function GuestList() {
   const $ul = document.createElement("ul");
+
   const guestsAtParty = guests.filter((guest) =>
     rsvps.find(
       (rsvp) => rsvp.guestId === guest.id && rsvp.eventId === selectedParty.id,
     ),
   );
+
+  // .filter() loops through the array,
+  // sees which meet the conditions,
+  // then pushes the values that return as truthy into the new array
+
+  // .find() returns the RSVP object if it meets the conditions specified, which are truthy
+  // It's basically saying
+  // "if the guest returns an object from rsvps, then keep that guest in the new array"
 
   // Simple components can also be created anonymously:
   const $guests = guestsAtParty.map((guest) => {
@@ -189,6 +213,10 @@ function GuestList() {
     return $guest;
   });
   $ul.replaceChildren(...$guests);
+
+  // we're looping through our guestsAtParty array,
+  // pulling guest names, then wrapping them in <li>
+  // then we replace the content of $ul with $guests, our guestlist html
 
   return $ul;
 }
@@ -212,6 +240,7 @@ function render() {
       </form>
     </main>
   `;
+  // added <form> at the end of <main>
 
   $app.querySelector("PartyList").replaceWith(PartyList());
   $app.querySelector("SelectedParty").replaceWith(SelectedParty());
@@ -224,5 +253,8 @@ async function init() {
   await getGuests();
   render();
 }
+
+// async allows us to use await
+// we're essentially waiting for the response data from the API
 
 init();
